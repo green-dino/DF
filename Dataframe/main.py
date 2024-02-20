@@ -5,6 +5,7 @@ from data_frame_analyzer import DataFrameAnalyzer
 from visualization import Visualization
 from group_by_aggregation import group_by_and_aggregate
 from data_analysis_options import display_data_analysis_options
+from fromCSV import FileHandler
 
 def analyze_dataframe(df, G):
     return DataFrameAnalyzer.analyze_dataframe(df)
