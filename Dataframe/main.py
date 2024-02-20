@@ -40,32 +40,38 @@ def run_app():
     analyzer = DataFrameAnalyzer()
     visualizer = Visualization()
 
-    pickle_files = analyzer.upload_multiple_files("pickle")
+    pickle_files = st.file_uploader("Upload Pickle File(s)", type="pickle", accept_multiple_files=True)
 
     if pickle_files:
-        dataframes = [analyzer.read_pickle_to_dataframe(file) for file in pickle_files]
-        combined_dataframe = pd.concat(dataframes)
+        dataframes = []
+        for file in pickle_files:
+            try:
+                df = pd.read_pickle(file)
+                dataframes.append(df)
+            except Exception as e:
+                st.error(f"Error loading file: {e}")
 
-        st.subheader("Combined DataFrame")
-        st.write(combined_dataframe)
-        st.markdown("---")
+        if dataframes:
+            combined_df = pd.concat(dataframes)
+            st.subheader("Combined DataFrame")
+            st.write(combined_df)
+            st.markdown("---")
 
-        st.sidebar.subheader("Additional Options")
-        st.sidebar.subheader("Data Analysis")
-        display_data_analysis_options(combined_dataframe, analyzer)
-        st.markdown("---")
+            st.sidebar.subheader("Data Analysis")
+            display_data_analysis_options(combined_df, analyzer)
+            st.markdown("---")
 
-        st.sidebar.subheader("Data Visualization")
-        display_data_visualization_options(combined_dataframe, visualizer)
-        st.markdown("---")
+            st.sidebar.subheader("Data Visualization")
+            display_data_visualization_options(combined_df, visualizer)
+            st.markdown("---")
 
-        st.sidebar.subheader("Community Detection")
-        if st.sidebar.button("Detect Communities"):
-            G = nx.Graph()
-            communities = analyze_dataframe(combined_dataframe, G)
-            st.write("Communities detected:")
-            st.write(communities)
-        st.markdown("---")
+            st.sidebar.subheader("Community Detection")
+            if st.sidebar.button("Detect Communities"):
+                G = nx.Graph()
+                communities = analyze_dataframe(combined_df, G)
+                st.write("Communities detected:")
+                st.write(communities)
+            st.markdown("---")
 
 if __name__ == "__main__":
     run_app()
