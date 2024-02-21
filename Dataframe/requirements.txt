@@ -4,3 +4,5 @@ matplotlib
 seaborn
 ipywidgets
 networkx
+python-docx
+docx2txt
