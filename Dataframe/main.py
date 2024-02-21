@@ -6,6 +6,21 @@ from visualization import Visualization
 from group_by_aggregation import group_by_and_aggregate
 from data_analysis_options import display_data_analysis_options
 from fromCSV import FileHandler
+import compareDates
+import dataProcessor
+import data_analysis_options
+import data_frame_analyzer
+import data_operations
+import fromCSV
+import group_by_aggregation
+import makeDF
+import optimizedCSV
+import pivot_table
+from readDOCtoPickle import FileReader, DataProcessor, DataFrameHandler
+import readWordtoPickle
+import sorting
+import visualization
+import widget
 
 def analyze_dataframe(df, G):
     return DataFrameAnalyzer.analyze_dataframe(df)
@@ -49,7 +64,7 @@ def run_app():
                 df = pd.read_pickle(file)
                 dataframes.append(df)
             except Exception as e:
-                st.error(f"Error loading file: {e}")
+                st.error(f"Error loading pickle file: {e}")
 
         if dataframes:
             combined_df = pd.concat(dataframes)
@@ -72,6 +87,45 @@ def run_app():
                 st.write("Communities detected:")
                 st.write(communities)
             st.markdown("---")
+
+    # Allow users to upload DOC files
+    doc_files = st.file_uploader("Upload DOC File(s)", type=["doc", "docx"], accept_multiple_files=True)
+
+    if doc_files:
+        for doc_file in doc_files:
+            try:
+                # Read the DOC file and convert it to a DataFrame
+                paragraphs = FileReader.read_docx(doc_file) if doc_file.name.endswith('.docx') else FileReader.read_doc(doc_file)
+                df = pd.DataFrame(paragraphs, columns=['Content'])
+
+                # Process the DataFrame
+                processor = DataProcessor()
+                processed_df = processor.process_data(df)
+
+                # Analyze the DataFrame
+                if processed_df is not None:
+                    st.subheader("Processed DataFrame")
+                    st.write(processed_df)
+                    st.markdown("---")
+
+                    st.sidebar.subheader("Data Analysis")
+                    display_data_analysis_options(processed_df, analyzer)
+                    st.markdown("---")
+
+                    st.sidebar.subheader("Data Visualization")
+                    display_data_visualization_options(processed_df, visualizer)
+                    st.markdown("---")
+
+                    st.sidebar.subheader("Community Detection")
+                    if st.sidebar.button("Detect Communities"):
+                        G = nx.Graph()
+                        communities = analyze_dataframe(processed_df, G)
+                        st.write("Communities detected:")
+                        st.write(communities)
+                    st.markdown("---")
+
+            except Exception as e:
+                st.error(f"Error processing DOC file: {e}")
 
 if __name__ == "__main__":
     run_app()
