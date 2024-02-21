@@ -2,6 +2,8 @@
 
 This Streamlit app allows users to upload and analyze Pickle files and Word documents, providing various data analysis and visualization options.
 
+You can use the version hosted on streamlit [Here](https://dataframe.streamlit.app)
+
 ## Getting Started
 
 To run this app locally, make sure you have Python installed. Then, follow these steps:
