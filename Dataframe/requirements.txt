@@ -7,5 +7,4 @@ networkx
 python-docx
 docx2txt
 docx
-pickle
 regex
