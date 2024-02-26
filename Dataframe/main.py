@@ -21,6 +21,7 @@ import readWordtoPickle
 import sorting
 import visualization
 import widget
+from optimizedCSV import FileHandler, DataFrameHandler
 
 def analyze_dataframe(df, G):
     return DataFrameAnalyzer.analyze_dataframe(df)
@@ -56,6 +57,41 @@ def run_app():
     visualizer = Visualization()
 
     pickle_files = st.file_uploader("Upload Pickle File(s)", type="pickle", accept_multiple_files=True)
+    csv_files = st.file_uploader("Upload CSV File(s)", type=["csv"], accept_multiple_files=True)
+
+    dataframes = []  # Initialize dataframes as an empty list
+
+    if csv_files:
+        for csv_file in csv_files:
+            try:
+                # Use Pandas to read the uploaded CSV file directly from the file object
+                df = pd.read_csv(csv_file)
+                dataframes.append(df)
+            except Exception as e:
+                st.error(f"Error loading CSV file: {e}")
+        if dataframes:
+            combined_df = pd.concat(dataframes)
+            st.subheader("Combined DataFrame")
+            st.write(combined_df)
+            st.markdown("---")
+
+            st.sidebar.subheader("Data Analysis")
+            display_data_analysis_options(combined_df, analyzer)
+            st.markdown("---")
+
+            st.sidebar.subheader("Data Visualization")
+            display_data_visualization_options(combined_df, visualizer)
+            st.markdown("---")
+
+            st.sidebar.subheader("Community Detection")
+            if st.sidebar.button("Detect Communities"):
+                G = nx.Graph()
+                communities = analyze_dataframe(combined_df, G)
+                st.write("Communities detected:")
+                st.write(communities)
+            st.markdown("---")
+
+
 
     if pickle_files:
         dataframes = []
