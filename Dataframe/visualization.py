@@ -5,14 +5,14 @@ import seaborn as sns
 
 class Visualization:
     @staticmethod
-    def plot_histogram(dataframe, column, bins=None, color='blue', title=None, figsize=(8, 6)):
+    def plot_histogram(dataframe, column, bins='auto', color='blue', title=None, figsize=(8, 6)):
         """
         Plot histogram.
 
         Parameters:
             dataframe (DataFrame): Input DataFrame.
             column (str): Name of the column to plot.
-            bins (int or sequence, optional): Number of histogram bins.
+            bins (int or str, optional): Number of histogram bins or 'auto' for automatic binning.
             color (str, optional): Color of the histogram.
             title (str, optional): Title of the plot.
             figsize (tuple, optional): Figure size.
