@@ -6,10 +6,8 @@ import re
 pd.options.mode.chained_assignment = 'warn'
 
 class DataProcessor:
-    def __init__(self):
-        self.ePatt = re.compile(r'[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,4}')
-        self.wPatt = re.compile(r'\b[a-zA-Z]{5,15}\b')  # Adjusted word pattern to match whole words
-        self.uPatt = re.compile(r'\b\w+:\/\/[\w@][\w.:@]+\/?[\w.\.?=%&=\-@$,]*\b')  # Adjusted URL pattern
+    def __init__(self, patterns):
+        self.patterns = patterns
 
     def read_file_to_dataframe(self, file_path, sheet_name=None):
         # Determine file format and read accordingly
@@ -39,9 +37,8 @@ class DataProcessor:
         new_columns = {}
         for column in df.columns:
             if df[column].dtype == 'object':
-                new_columns[column + '_emails'] = df[column].apply(lambda x: self.ePatt.findall(str(x)))
-                new_columns[column + '_words'] = df[column].apply(lambda x: self.wPatt.findall(str(x)))
-                new_columns[column + '_urls'] = df[column].apply(lambda x: self.uPatt.findall(str(x)))
+                for pattern_name, pattern in self.patterns.items():
+                    new_columns[column + '_' + pattern_name] = df[column].apply(lambda x: pattern.findall(str(x)))
         return pd.concat([df, pd.DataFrame(new_columns)], axis=1)
 
     def save_dataframe(self, df, filename, format='csv'):
@@ -54,7 +51,24 @@ class DataProcessor:
             raise ValueError("Unsupported format. Please choose 'csv' or 'pickle'.")
 
 if __name__ == "__main__":
-    processor = DataProcessor()
+    patterns = {
+        'alpha_numeric': re.compile(b'[a-zA-Z]{5,15}'),
+        'url': re.compile(b'\w+:\/\/[\w@][\w.:@]+\/?[\w.\.?=%&=\-@$,]*'),
+        'email': re.compile(b'[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,4}'),
+        'phone_number': re.compile(b'\d{3}-\d{3}-\d{4}'),
+        'ipv4_address': re.compile(b'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}'),
+        'folder_hierarchy': re.compile(b'.+(?=((\|\/).+){2})'),
+        'email_address': re.compile(b'(([a-zA-Z0-9_\-\.]+)@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.)|(([a-zA-Z0-9\-]+\.)+))([a-zA-Z]{2,4}|[0-9]{1,3})(\]?)(\s*;\s*|\s*$))*'),
+        'password': re.compile(b'^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$ %^&*-]).{8,}$'),
+        'username_discord': re.compile(b'^.{3,32}#[0-9]{4}$'),
+        'url': re.compile(b'(https?:\/\/)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()!@:%_\+.~#?&\/\/=]*)'),
+        'mac_address': re.compile(b'^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$'),
+        'whitespace_leading': re.compile(b'^\s+'),
+        'whitespace_trailing': re.compile(b'\s+$'),
+        'whitespace_consecutive': re.compile(b'\s{2,}')
+    }
+
+    processor = DataProcessor(patterns)
 
     while True:
         # Ask user for directory containing files
