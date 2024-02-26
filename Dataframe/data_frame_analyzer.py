@@ -18,8 +18,7 @@ class DataFrameAnalyzer:
     def derive_column(dataframe, formula, new_column_name):
         """Derives a new column based on a formula."""
         try:
-            derived_column = eval(formula, globals(), {'dataframe': dataframe})
-            dataframe[new_column_name] = derived_column
+            dataframe[new_column_name] = eval(formula, globals(), {'dataframe': dataframe})
             return dataframe
         except Exception as e:
             st.error(f"Error deriving column: {e}")
@@ -30,12 +29,10 @@ class DataFrameAnalyzer:
         """Handles null values in the DataFrame."""
         try:
             if action == "Drop":
-                new_dataframe = dataframe.dropna(axis=axis)
+                dataframe = dataframe.dropna(axis=axis)
             elif action == "Fill" and fill_value is not None:
-                new_dataframe = dataframe.fillna(fill_value)
-            else:
-                new_dataframe = dataframe
-            return new_dataframe
+                dataframe = dataframe.fillna(fill_value)
+            return dataframe
         except Exception as e:
             st.error(f"Error handling null values: {e}")
             return None
@@ -48,7 +45,7 @@ class DataFrameAnalyzer:
                 filtered_df = dataframe.query(condition)
                 return filtered_df
             else:
-                return None
+                return dataframe
         except Exception as e:
             st.error(f"Error filtering DataFrame: {e}")
             return None
@@ -106,7 +103,7 @@ class DataFrameAnalyzer:
             return None
 
     @staticmethod
-    def analyze_dataframe(df):
+    def analyze_dataframe(df, G):
         """Analyzes DataFrame and detects communities."""
         try:
             G = nx.Graph()
@@ -141,3 +138,31 @@ class DataFrameAnalyzer:
         except Exception as e:
             st.error(f"Error finding identifier and related items: {e}")
             return None, None
+
+def run_app():
+    st.title("Data Analysis and Community Detection")
+
+    # Upload CSV files
+    csv_files = DataFrameAnalyzer.upload_multiple_files("csv")
+
+    # Combine CSV dataframes
+    if csv_files:
+        dataframes = [pd.read_csv(file) for file in csv_files]
+        combined_df = pd.concat(dataframes)
+        st.subheader("Combined DataFrame")
+        st.write(combined_df)
+        st.markdown("---")
+
+        st.sidebar.subheader("Data Analysis")
+        # Other data analysis functions can be added here
+        st.markdown("---")
+
+        st.sidebar.subheader("Community Detection")
+        if st.sidebar.button("Detect Communities"):
+            communities = DataFrameAnalyzer.analyze_dataframe(combined_df)
+            st.write("Communities detected:")
+            st.write(communities)
+        st.markdown("---")
+
+if __name__ == "__main__":
+    run_app()

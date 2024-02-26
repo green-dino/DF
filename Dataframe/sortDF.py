@@ -1,4 +1,3 @@
-# sorting.py
 import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -39,7 +38,7 @@ def main():
             st.write("Sorted DataFrame:")
             st.write(sorted_df)
 
-            #Visualize sorted data
+            # Visualize sorted data
             st.subheader("Visualization:")
             plt.figure(figsize=(10, 6))
             plt.bar(sorted_df.index, sorted_df[sort_by_column])

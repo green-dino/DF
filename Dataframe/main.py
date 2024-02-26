@@ -22,9 +22,7 @@ import sorting
 import visualization
 import widget
 from optimizedCSV import FileHandler, DataFrameHandler
-
-def analyze_dataframe(df, G):
-    return DataFrameAnalyzer.analyze_dataframe(df)
+import sortDF
 
 def display_data_visualization_options(combined_dataframe, visualizer):
     selected_viz_option = st.sidebar.radio(
@@ -51,94 +49,50 @@ def display_data_visualization_options(combined_dataframe, visualizer):
         visualizer.plot_scatterplot(combined_dataframe, x_column, y_column)
 
 def run_app():
-    st.title("Pickle File Viewer & DataFrame Analyzer")
+    st.title("Data Analysis and Visualization")
 
     analyzer = DataFrameAnalyzer()
     visualizer = Visualization()
 
-    pickle_files = st.file_uploader("Upload Pickle File(s)", type="pickle", accept_multiple_files=True)
+    # Upload CSV files
     csv_files = st.file_uploader("Upload CSV File(s)", type=["csv"], accept_multiple_files=True)
 
-    dataframes = []  # Initialize dataframes as an empty list
+    # Combine CSV dataframes
+    combined_df = pd.concat([pd.read_csv(file) for file in csv_files]) if csv_files else None
 
-    if csv_files:
-        for csv_file in csv_files:
-            try:
-                # Use Pandas to read the uploaded CSV file directly from the file object
-                df = pd.read_csv(csv_file)
-                dataframes.append(df)
-            except Exception as e:
-                st.error(f"Error loading CSV file: {e}")
-        if dataframes:
-            combined_df = pd.concat(dataframes)
-            st.subheader("Combined DataFrame")
-            st.write(combined_df)
-            st.markdown("---")
+    if combined_df is not None:
+        st.subheader("Combined DataFrame")
+        st.write(combined_df)
+        st.markdown("---")
 
-            st.sidebar.subheader("Data Analysis")
-            display_data_analysis_options(combined_df, analyzer)
-            st.markdown("---")
+        st.sidebar.subheader("Data Analysis")
+        display_data_analysis_options(combined_df, analyzer)
+        st.markdown("---")
 
-            st.sidebar.subheader("Data Visualization")
-            display_data_visualization_options(combined_df, visualizer)
-            st.markdown("---")
+        st.sidebar.subheader("Data Visualization")
+        display_data_visualization_options(combined_df, visualizer)
+        st.markdown("---")
 
-            st.sidebar.subheader("Community Detection")
-            if st.sidebar.button("Detect Communities"):
-                G = nx.Graph()
-                communities = analyze_dataframe(combined_df, G)
-                st.write("Communities detected:")
-                st.write(communities)
-            st.markdown("---")
+        st.sidebar.subheader("Community Detection")
+        if st.sidebar.button("Detect Communities"):
+            G = nx.Graph()
+            communities = analyzer.analyze_dataframe(combined_df, G)
+            st.write("Communities detected:")
+            st.write(communities)
+        st.markdown("---")
 
-
-
-    if pickle_files:
-        dataframes = []
-        for file in pickle_files:
-            try:
-                df = pd.read_pickle(file)
-                dataframes.append(df)
-            except Exception as e:
-                st.error(f"Error loading pickle file: {e}")
-
-        if dataframes:
-            combined_df = pd.concat(dataframes)
-            st.subheader("Combined DataFrame")
-            st.write(combined_df)
-            st.markdown("---")
-
-            st.sidebar.subheader("Data Analysis")
-            display_data_analysis_options(combined_df, analyzer)
-            st.markdown("---")
-
-            st.sidebar.subheader("Data Visualization")
-            display_data_visualization_options(combined_df, visualizer)
-            st.markdown("---")
-
-            st.sidebar.subheader("Community Detection")
-            if st.sidebar.button("Detect Communities"):
-                G = nx.Graph()
-                communities = analyze_dataframe(combined_df, G)
-                st.write("Communities detected:")
-                st.write(communities)
-            st.markdown("---")
-
-    # Allow users to upload DOC files
+    # Upload DOC files
     doc_files = st.file_uploader("Upload DOC File(s)", type=["doc", "docx"], accept_multiple_files=True)
 
     if doc_files:
         for doc_file in doc_files:
             try:
-                # Read the DOC file and convert it to a DataFrame
                 paragraphs = FileReader.read_docx(doc_file) if doc_file.name.endswith('.docx') else FileReader.read_doc(doc_file)
                 df = pd.DataFrame(paragraphs, columns=['Content'])
 
-                # Process the DataFrame
                 processor = DataProcessor()
                 processed_df = processor.process_data(df)
 
-                # Analyze the DataFrame
                 if processed_df is not None:
                     st.subheader("Processed DataFrame")
                     st.write(processed_df)
@@ -155,11 +109,11 @@ def run_app():
                     st.sidebar.subheader("Community Detection")
                     if st.sidebar.button("Detect Communities"):
                         G = nx.Graph()
-                        communities = analyze_dataframe(processed_df, G)
+                        communities = analyzer.analyze_dataframe(processed_df, G)
                         st.write("Communities detected:")
                         st.write(communities)
                     st.markdown("---")
-
+                    
             except Exception as e:
                 st.error(f"Error processing DOC file: {e}")
 
