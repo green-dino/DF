@@ -76,17 +76,18 @@ class Visualization:
             if dataframe.empty:
                 raise ValueError("DataFrame is empty.")
 
+            # Select only numeric columns
             numeric_cols = dataframe.select_dtypes(include=['number']).columns
             if len(numeric_cols) == 0:
                 raise ValueError("No numeric columns found for correlation calculation.")
 
+            # Handle NaN values by filling them with the mean of the column
+            dataframe[numeric_cols] = dataframe[numeric_cols].fillna(dataframe[numeric_cols].mean())
+
             corr_data = dataframe[numeric_cols].corr()
 
-            if corr_data.isnull().values.any():
-                raise ValueError("NaN values found in correlation data.")
-
             sns.heatmap(corr_data, annot=True, cmap='coolwarm', linewidths=0.5, ax=ax)
-            ax.set(title="Correlation Heatmap" if title is None else title)
+            ax.set(title="Correlation Heatmap" if title is None else str(title))  # Ensure title is a string
             st.pyplot(fig)
         except ValueError as ve:
             st.error(f"Error plotting correlation heatmap: {ve}")
