@@ -27,7 +27,7 @@ import sortDF
 def display_data_visualization_options(combined_dataframe, visualizer):
     selected_viz_option = st.sidebar.radio(
         "Select Visualization",
-        ["Plot Histogram", "Plot Boxplot", "Plot Correlation Heatmap", "Plot Scatterplot"]
+        ["Plot Histogram", "Plot Boxplot", "Plot Correlation Heatmap", "Plot Scatterplot", "Pivot Table"]
     )
 
     if selected_viz_option == "Plot Histogram":
@@ -47,6 +47,21 @@ def display_data_visualization_options(combined_dataframe, visualizer):
         x_column = st.sidebar.selectbox("Select x-axis column", combined_dataframe.columns.tolist())
         y_column = st.sidebar.selectbox("Select y-axis column", combined_dataframe.columns.tolist())
         visualizer.plot_scatterplot(combined_dataframe, x_column, y_column)
+    elif selected_viz_option == "Pivot Table":
+        st.subheader("Pivot Table Settings:")
+        index_columns = st.selectbox("Select index column", combined_dataframe.columns.tolist())
+        columns = st.selectbox("Select columns (optional)", ["None"] + combined_dataframe.columns.tolist())
+        values = st.multiselect("Select values column(s)", combined_dataframe.columns.tolist())
+        agg_func = st.selectbox("Select aggregation function", ["sum", "mean", "count", "min", "max"])
+        fill_value = st.text_input("Fill missing values with", "")
+
+         # Create pivot table
+        pivot_table = pd.pivot_table(combined_dataframe, index=index_columns, columns=columns, values=values, aggfunc=agg_func, fill_value=fill_value)
+
+        # Display pivot table
+        st.write("Pivot Table:")
+        st.write(pivot_table)
+    
 
 def run_app():
     st.title("Data Analysis and Visualization")
@@ -113,7 +128,9 @@ def run_app():
                         st.write("Communities detected:")
                         st.write(communities)
                     st.markdown("---")
-                    
+
+                
+                
             except Exception as e:
                 st.error(f"Error processing DOC file: {e}")
 
